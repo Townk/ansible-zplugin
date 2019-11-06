@@ -1,0 +1,73 @@
+# MIT License
+# 
+# Copyright (c) 2019 Thiago Alves
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+---
+- name: Configure environment variables
+  block:
+  - name: Configure Zplugin home dir to XDG default
+    set_fact: zplugin_home_dir="{{ lookup('env', 'XDG_PACKAGE_HOME') }}/zplugin" 
+    when: zplugin_home_dir == "XDG_PACKAGE_HOME"
+  - name: Configure Zplugin home dir to default value
+    set_fact: zplugin_home_dir="{{ lookup('env', 'ZDOTDIR') }}/zplugin" 
+    when: zplugin_home_dir == "/zplugin"
+
+  - name: Configure Zplugin data dir to XDG default
+    set_fact: zplugin_data_dir="{{ lookup('env', 'XDG_DATA_HOME') }}/zplugin" 
+    when: zplugin_data_dir == "XDG_DATA_HOME"
+  - name: Configure Zplugin data dir to default value
+    set_fact: zplugin_data_dir="{{ lookup('env', 'ZDOTDIR') }}/zplugin" 
+    when: zplugin_data_dir == "/zplugin"
+
+  - name: Configure ZSH compdump location to XDG default
+    set_fact: zcompdump_location="{{ lookup('env', 'XDG_CACHE_HOME') }}/zsh/zcompdump" 
+    when: zcompdump_location == "XDG_CACHE_HOME"
+  - name: Configure ZSH compdump location to default value
+    set_fact: zcompdump_location="{{ lookup('env', 'ZDOTDIR') }}/.zcompdump" 
+    when: zcompdump_location == "/zsh/zcompdump"
+
+  - name: Configure ZSH local plugin location
+    set_fact: zplugin_plugin_location="{{ lookup('env', 'XDG_DATA_HOME') }}/zsh/plugins/zplugin-bootstrap.plugin.zsh" 
+    when: zplugin_plugin_location == "XDG_DATA_HOME"
+  - name: Configure ZSH local plugin location to default value
+    set_fact: zplugin_plugin_location="{{ lookup('env', 'ZDOTDIR') }}/plugins/zplugin-bootstrap.plugin.zsh" 
+    when: zplugin_plugin_location == "/zsh/plugins/zplugin-bootstrap.plugin.zsh"
+
+- name: Check if Zplugin is already installed
+  stat:
+    path: "{{ zplugin_home_dir }}/bin/zplugin.zsh"  
+  register: zplugin_init_script
+
+- name: Install Zplugin
+  block:
+    - name: Create Zplugin home directory
+      file:
+        path: "{{ zplugin_home_dir }}"
+        state: directory
+
+    - name: Cloning Zplugin repository
+      git:
+        repo: https://github.com/zdharma/zplugin.git
+        dest: "{{ zplugin_home_dir }}/bin"
+
+- name: Create Zplugin bootstrap script
+  template:
+    src: zplugin-bootstrap.plugin.zsh.j2
+    dest: "{{ zplugin_plugin_location }}"
