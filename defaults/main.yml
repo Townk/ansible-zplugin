@@ -21,7 +21,7 @@
 # SOFTWARE.
 ---
 zplugin_plugins: []
-zplugin_home_dir: XDG_PACKAGE_HOME
+zplugin_home_dir: XDG_OPT_HOME
 zplugin_data_dir: XDG_DATA_HOME
 zplugin_cache_dir: XDG_CACHE_HOME
 zplugin_plugin_location: XDG_DATA_HOME
