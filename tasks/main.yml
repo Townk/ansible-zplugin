@@ -23,8 +23,8 @@
 - name: Configure environment variables
   block:
   - name: Configure Zplugin home dir to XDG default
-    set_fact: zplugin_home_dir="{{ lookup('env', 'XDG_PACKAGE_HOME') }}/zplugin" 
-    when: zplugin_home_dir == "XDG_PACKAGE_HOME"
+    set_fact: zplugin_home_dir="{{ lookup('env', 'XDG_OPT_HOME') }}/zplugin" 
+    when: zplugin_home_dir == "XDG_OPT_HOME"
   - name: Configure Zplugin home dir to default value
     set_fact: zplugin_home_dir="{{ lookup('env', 'ZDOTDIR') }}/zplugin" 
     when: zplugin_home_dir == "/zplugin"
