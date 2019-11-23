@@ -71,3 +71,47 @@
   template:
     src: zplugin-bootstrap.plugin.zsh.j2
     dest: "{{ zplugin_plugin_location }}"
+
+- name: Get list of plugins defined in the configuration
+  set_fact:
+    zplugin_plugin_list: "{{ zplugin_plugins|rejectattr('type', 'equalto', 'snippet')|map(attribute='name')|map('replace', '/', '---')|list }}"
+
+- name: Get list of plugins to clean up
+  find:
+    paths: "{{ zplugin_data_dir }}/plugins"
+    file_type: directory
+    recurse: no
+  register: zplugin_plugin_cleanup_list
+
+- name: Normalize list of plugins to clean up
+  set_fact:
+    zplugin_plugin_cleanup_list: "{{ zplugin_plugin_cleanup_list.files|map(attribute='path')|map('basename')|select('match', '^(?!_local).*$')|difference(zplugin_plugin_list)|list }}"
+
+- name: Remove plugins not present in configuration
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ zplugin_plugin_cleanup_list }}"
+  when: zplugin_plugin_cleanup_list|bool
+
+- name: Get list of snippets defined in the configuration
+  set_fact:
+    zplugin_snippet_list: "{{ zplugin_plugins|selectattr('type', 'equalto', 'snippet')|map(attribute='name')|map('dirname')|map('replace', '/', '--')|list }}"
+
+- name: Get list of snippets to clean up
+  find:
+    paths: "{{ zplugin_data_dir }}/snippets"
+    file_type: directory
+    recurse: no
+  register: zplugin_snippet_cleanup_list
+
+- name: Normalize list of snippets to clean up
+  set_fact:
+    zplugin_snippet_cleanup_list: "{{ zplugin_snippet_cleanup_list.files|map(attribute='path')|map('basename')|difference(zplugin_snippet_list)|list }}"
+
+- name: Remove snippets not present in configuration
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ zplugin_snippet_cleanup_list }}"
+  when: zplugin_snippet_cleanup_list|bool
